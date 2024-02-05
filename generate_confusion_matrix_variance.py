@@ -13,14 +13,14 @@ ds = load_dataset('zh-plus/tiny-imagenet')
 ds = ds.rename_column("label", "labels")
 
 training_args_dict = {
-    "output_dir": "./drive/MyDrive/cifar100/imagenet",
-    "per_device_train_batch_size": 64,
-    "per_device_eval_batch_size": 64,
+    "output_dir": "./imagenet",
+    "per_device_train_batch_size": 100,
+    "per_device_eval_batch_size": 100,
     "evaluation_strategy": "steps",
     "num_train_epochs": 1,
     "fp16": True,
-    "save_steps": 100,
-    "eval_steps": 100,
+    "save_steps": 500,
+    "eval_steps": 500,
     "logging_steps": 10,
     "learning_rate": 2e-4,
     "save_total_limit": 1,
@@ -50,6 +50,7 @@ labels = ds['train'].features['labels'].names
 
 sigmas = [x for x in np.logspace(-3,0,10) if x not in [0.001,0.01, 0.1, 1]]
 
+sigmas = [ 0.046415888336127774, 0.21544346900318823, 0.46415888336127775]
 
 transforms = [lambda x: transform(x, sigma) for sigma in sigmas]
 
@@ -57,7 +58,7 @@ transforms = [lambda x: transform(x, sigma) for sigma in sigmas]
 for j in range(len(sigmas)):
     sigma = sigmas[j]
     transform_j = transforms[j]
-    prepared_ds = ds.with_transform(transform_j) 
+    prepared_ds = ds.with_transform(transform_j)
     model = ViTForImageClassification.from_pretrained(
         model_name_or_path,
         num_labels=len(labels),
@@ -66,7 +67,7 @@ for j in range(len(sigmas)):
     )
 
 
-    
+
     # Convert the dictionary to a TrainingArguments instance
     training_args = TrainingArguments(**training_args_dict)
 
@@ -87,7 +88,7 @@ for j in range(len(sigmas)):
     y_true = preds.label_ids
     y_pred = preds.predictions.argmax(-1)
     confusion_matrix_result = confusion_matrix(y_true, y_pred)
-    np.save(f"./drive/MyDrive/cifar100/imagenet/confusion_matrix_sigma_{sigma}",confusion_matrix_result)
+    np.save(f"./cm/variance/confusion_matrix_sigma_{sigma}",confusion_matrix_result)
 
 
 

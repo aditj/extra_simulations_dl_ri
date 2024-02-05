@@ -14,7 +14,7 @@ def compute_metrics(p):
     y_true = p.label_ids
     y_pred = p.predictions.argmax(-1)
     confusion_matrix_result = confusion_matrix(y_true, y_pred)
-    np.save(f"./drive/MyDrive/cifar100/cm/confusion_matrix_{iterate_cm}",confusion_matrix_result)
+    np.save(f"./cm/epochs/confusion_matrix_{iterate_cm}",confusion_matrix_result)
     iterate_cm += 1
     return metric.compute(predictions=np.argmax(p.predictions, axis=1), references=p.label_ids)
 ### load cifar-100 dataset ###
@@ -56,7 +56,7 @@ def transform(example_batch):
     return inputs
 labels = ds['train'].features['labels'].names
 
-prepared_ds = ds.with_transform(transform) 
+prepared_ds = ds.with_transform(transform)
 
 
 model = ViTForImageClassification.from_pretrained(
@@ -67,7 +67,7 @@ model = ViTForImageClassification.from_pretrained(
 )
 
 
-    
+
 # Convert the dictionary to a TrainingArguments instance
 training_args = TrainingArguments(**training_args_dict)
 
@@ -84,15 +84,15 @@ trainer.evaluate()
 trainer.save_model("vit-base-cifar100")
 
 #### Compute confusion matrix for each epoch ####
-steps = trainer.eval_steps 
+steps = trainer.eval_steps
 
 for step in steps:
-    trainer.load_model(f"./drive/MyDrive/cifar100/checkpoint-{step}")
+    trainer.load_model(f"./cifar100/checkpoint-{step}")
     preds = trainer.predict(prepared_ds['valid'])
     y_true = preds.label_ids
     y_pred = preds.predictions.argmax(-1)
     confusion_matrix_result = confusion_matrix(y_true, y_pred)
-    np.save(f"confusion_matrix_step_{step}",confusion_matrix_result)
+    np.save(f"./cm/epochs/confusion_matrix_step_{step}",confusion_matrix_result)
 
 
 
